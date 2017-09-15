@@ -98,7 +98,7 @@ function BLT:GetVersion()
 end
 
 function BLT:GetOS()
-	return os.getenv("HOME") == nil and "windows" or "linux"
+	return (BLT.PlatformName and BLT.PlatformName()) or (os.getenv("HOME") == nil and "windows" or "linux")
 end
 
 function BLT:RunHookTable( hooks_table, path )
