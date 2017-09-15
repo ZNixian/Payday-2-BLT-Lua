@@ -6,14 +6,18 @@ function BLTCompatManager:init()
 	local LuaModManager = {}
 	self.lmm = LuaModManager
 
+	-- Set up the old save and log path globals, in case any misbehaving modern
+	-- mods use this. (*cough WolfHUD *cough)
+	-- TODO: Add log-of-shame when these are accessed.
+	local C = BLT.Mods.Constants
+	rawset(_G, C.logs_path_global, C.mods_directory .. C.logs_directory)
+	rawset(_G, C.save_path_global, C.mods_directory .. C.saves_directory)
+
 	if not vm then
 		-- Some backwards compatibility for v1 mods
-		local C = self.Mods.Constants
 		_G.LuaModManager = LuaModManager
 		LuaModManager.Constants = C
 		LuaModManager.Mods = {} -- No mods are available via old api
-		rawset(_G, C.logs_path_global, C.mods_directory .. C.logs_directory)
-		rawset(_G, C.save_path_global, C.mods_directory .. C.saves_directory)
 
 		log("No VM table - cannot loadfile - compatibility disabled.")
 		return
