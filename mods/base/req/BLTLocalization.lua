@@ -17,7 +17,7 @@ end
 function BLTLocalization:_init_legacy_support()
 
 	-- Add legacy support, otherwise lots of mods will crash on start-up immediately
-	LuaModManager = LuaModManager or {}
+	local LuaModManager = BLT.Compat:LuaModManager()
 
 	-- Insert language codes into the _languages table
 	LuaModManager._languages = {}

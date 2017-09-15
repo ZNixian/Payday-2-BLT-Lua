@@ -52,6 +52,7 @@ BLT:Require("req/BLTLocalization")
 BLT:Require("req/BLTNotificationsManager")
 BLT:Require("req/BLTPersistScripts")
 BLT:Require("req/BLTKeybindsManager")
+BLT:Require("req/BLTCompatManager")
 
 -- BLT base functions
 function BLT:Initialize()
@@ -82,18 +83,13 @@ function BLT:Setup()
 	self.PersistScripts = BLTPersistScripts:new()
 	self.Localization = BLTLocalization:new()
 	self.Notifications = BLTNotificationsManager:new()
+	self.Compat = BLTCompatManager:new()
 
 	-- Initialization functions
 	self.Logs:CleanLogs()
 	self.Mods:SetModsList( self:ProcessModsList( self:FindMods() ) )
 
-	-- Some backwards compatibility for v1 mods
-	local C = self.Mods.Constants
-	_G.LuaModManager = {}
-	_G.LuaModManager.Constants = C
-	_G.LuaModManager.Mods = {} -- No mods are available via old api
-	rawset(_G, C.logs_path_global, C.mods_directory .. C.logs_directory)
-	rawset(_G, C.save_path_global, C.mods_directory .. C.saves_directory)
+	self.Compat:ModsLoaded()
 
 end
 
@@ -117,7 +113,14 @@ end
 function BLT:RunHookFile( path, hook_data )
 	rawset( _G, BLTModManager.Constants.required_script_global, path or false )
 	rawset( _G, BLTModManager.Constants.mod_path_global, hook_data.mod:GetPath() or false )
-	dofile( hook_data.mod:GetPath() .. hook_data.script )
+
+	local path = hook_data.mod:GetPath() .. hook_data.script
+	-- TODO use compat only when it's set to run on BLT1, not a earlier version of BLT2
+	if hook_data.mod:IsOutdated() and self.Compat:IsEnabled() then
+		self.Compat:Load(path)
+	else
+		dofile(path)
+	end
 end
 
 function BLT:OverrideRequire()
